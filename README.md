@@ -11,4 +11,4 @@ Blueprint avancé pour Home Assistant automatisant la position des volets roulan
 ## Installation
 Cliquez sur le badge ci-dessous pour importer directement ce Blueprint dans votre instance Home Assistant :
 
-[![Ouvrir Home Assistant et importer le Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?repository_url=https://github.com/VOTRE_PSEUDO/NOM_DU_REPO)
+[![Ouvrir Home Assistant et importer le Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?repository_url=https://github.com/guillaumefleuru-rgb/ha-shutters-sun-mgmt)
