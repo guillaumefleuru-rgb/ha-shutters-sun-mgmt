@@ -1,0 +1,457 @@
+blueprint:
+  name: "Gestion Solaire Volets (Déclenchement par Angle Solaire)"
+  description: >
+    Gère jusqu'à 5 fenêtres avec géométrie pure, découpage par paliers, protection sieste (compatible Somfy My), gestion de présence, position de fin de cycle et gestion matinale personnalisables.
+  domain: automation
+  input:
+    # --- PARAMÈTRES GÉNÉRAUX ---
+    section_general:
+      name: "Paramètres Généraux"
+      icon: mdi:cog
+      collapsed: false
+      input:
+        nb_paliers:
+          name: "Nombre de paliers intermédiaires"
+          description: "Nombre de crans de réglage entre le bas de vitre et l'ouverture totale. Ex: 5"
+          default: 5
+          selector:
+            number:
+              min: 2
+              max: 10
+        min_position_active:
+          name: "Seuil d'ouverture minimal (Protection Sieste) en %"
+          description: "Si le volet est sous ce seuil (ex: nuit, sieste, position 'My' Somfy), l'automatisation l'ignore. Un seuil de 20% est idéal pour exclure la position 'My' (15%)."
+          default: 20
+          selector:
+            number:
+              min: 0
+              max: 100
+              unit_of_measurement: "%"
+        presence_sensor:
+          name: "Capteur de présence global (Optionnel)"
+          description: "Entrée binaire (binary_sensor), personne (person), ou tracker (device_tracker). Si absent, la gestion solaire est suspendue."
+          default: []
+          selector:
+            entity:
+              domain:
+                - binary_sensor
+                - person
+                - device_tracker
+
+    # --- FENÊTRE 1 ---
+    section_f1:
+      name: "Fenêtre 1 (Obligatoire)"
+      icon: mdi:window-closed
+      collapsed: false
+      input:
+        f1_active:
+          name: "Interrupteur d'activation Dashboard (Optionnel)"
+          description: "Entrée booléenne (input_boolean) pour contrôler cette fenêtre depuis le Dashboard."
+          default: []
+          selector:
+            entity:
+              domain: input_boolean
+        f1_cover:
+          name: "Volet"
+          selector:
+            entity:
+              domain: cover
+        f1_emin:
+          name: "Élévation minimale du soleil"
+          description: "Angle minimal du soleil au-dessus de l'horizon pour que l'ensoleillement soit actif (en °)."
+          default: 20
+          selector:
+            number:
+              min: 0
+              max: 45
+              unit_of_measurement: "°"
+        f1_lf:
+          name: "Largeur de la baie"
+          default: 1.0
+          selector:
+            number: { min: 0.2, max: 5.0, step: 0.05, unit_of_measurement: "m" }
+        f1_pf:
+          name: "Profondeur du tableau"
+          description: "Distance entre la vitre et le volet (m). Si balcon au-dessus, ajoutez sa profondeur."
+          default: 0.25
+          selector:
+            number: { min: 0.05, max: 1.0, step: 0.01, unit_of_measurement: "m" }
+        f1_of:
+          name: "Orientation de la fenêtre"
+          description: "0=Nord, 90=Est, 180=Sud, 270=Ouest"
+          default: 180
+          selector:
+            number: { min: 0, max: 360, unit_of_measurement: "°" }
+        f1_dmax:
+          name: "Hauteur de course exploitable du volet"
+          default: 1.15
+          selector:
+            number: { min: 0.2, max: 4.0, step: 0.05, unit_of_measurement: "m" }
+        f1_pmin:
+          name: "Position du volet au niveau du bas de vitre (%)"
+          default: 25
+          selector:
+            number: { min: 0, max: 100, unit_of_measurement: "%" }
+        f1_exit:
+          name: "Position de fin d'ensoleillement (%)"
+          description: "Position adoptée lorsque le soleil quitte la fenêtre (azimut hors champ ou élévation trop basse)."
+          default: 100
+          selector:
+            number: { min: 0, max: 100, unit_of_measurement: "%" }
+        f1_morning:
+          name: "Gestion du matin (avant ensoleillement)"
+          description: "Désactivé : ignore le volet tant que le soleil n'y tape pas. Activé : applique la 'Position de fin d'ensoleillement' dès le matin."
+          default: false
+          selector:
+            boolean: {}
+
+    # --- FENÊTRE 2 ---
+    section_f2:
+      name: "Fenêtre 2 (Optionnelle)"
+      icon: mdi:window-closed
+      collapsed: true
+      input:
+        f2_active:
+          name: "Interrupteur d'activation (Optionnel)"
+          default: []
+          selector: { entity: { domain: input_boolean } }
+        f2_cover:
+          name: "Volet"
+          default: []
+          selector: { entity: { domain: cover } }
+        f2_emin:
+          name: "Élévation minimale du soleil"
+          description: "Angle minimal du soleil au-dessus de l'horizon (en °)."
+          default: 20
+          selector:
+            number: { min: 0, max: 45, unit_of_measurement: "°" }
+        f2_lf:
+          name: "Largeur de la baie"
+          default: 1.0
+          selector: { number: { min: 0.2, max: 5.0, step: 0.05, unit_of_measurement: "m" } }
+        f2_pf:
+          name: "Profondeur du tableau"
+          default: 0.25
+          selector: { number: { min: 0.05, max: 1.0, step: 0.01, unit_of_measurement: "m" } }
+        f2_of:
+          name: "Orientation de la fenêtre"
+          default: 180
+          selector: { number: { min: 0, max: 360, unit_of_measurement: "°" } }
+        f2_dmax:
+          name: "Hauteur de course"
+          default: 1.15
+          selector: { number: { min: 0.2, max: 4.0, step: 0.05, unit_of_measurement: "m" } }
+        f2_pmin:
+          name: "Position bas de vitre (%)"
+          default: 25
+          selector: { number: { min: 0, max: 100, unit_of_measurement: "%" } }
+        f2_exit:
+          name: "Position fin d'ensoleillement (%)"
+          default: 100
+          selector: { number: { min: 0, max: 100, unit_of_measurement: "%" } }
+        f2_morning:
+          name: "Gestion du matin (avant ensoleillement)"
+          default: false
+          selector: { boolean: {} }
+
+    # --- FENÊTRE 3 ---
+    section_f3:
+      name: "Fenêtre 3 (Optionnelle)"
+      icon: mdi:window-closed
+      collapsed: true
+      input:
+        f3_active:
+          name: "Interrupteur d'activation (Optionnel)"
+          default: []
+          selector: { entity: { domain: input_boolean } }
+        f3_cover:
+          name: "Volet"
+          default: []
+          selector: { entity: { domain: cover } }
+        f3_emin:
+          name: "Élévation minimale du soleil"
+          default: 20
+          selector:
+            number: { min: 0, max: 45, unit_of_measurement: "°" }
+        f3_lf:
+          name: "Largeur de la baie"
+          default: 1.0
+          selector: { number: { min: 0.2, max: 5.0, step: 0.05, unit_of_measurement: "m" } }
+        f3_pf:
+          name: "Profondeur du tableau"
+          default: 0.25
+          selector: { number: { min: 0.05, max: 1.0, step: 0.01, unit_of_measurement: "m" } }
+        f3_of:
+          name: "Orientation de la fenêtre"
+          default: 180
+          selector: { number: { min: 0, max: 360, unit_of_measurement: "°" } }
+        f3_dmax:
+          name: "Hauteur de course"
+          default: 1.15
+          selector: { number: { min: 0.2, max: 4.0, step: 0.05, unit_of_measurement: "m" } }
+        f3_pmin:
+          name: "Position bas de vitre (%)"
+          default: 25
+          selector: { number: { min: 0, max: 100, unit_of_measurement: "%" } }
+        f3_exit:
+          name: "Position fin d'ensoleillement (%)"
+          default: 100
+          selector: { number: { min: 0, max: 100, unit_of_measurement: "%" } }
+        f3_morning:
+          name: "Gestion du matin (avant ensoleillement)"
+          default: false
+          selector: { boolean: {} }
+
+    # --- FENÊTRE 4 ---
+    section_f4:
+      name: "Fenêtre 4 (Optionnelle)"
+      icon: mdi:window-closed
+      collapsed: true
+      input:
+        f4_active:
+          name: "Interrupteur d'activation (Optionnel)"
+          default: []
+          selector: { entity: { domain: input_boolean } }
+        f4_cover:
+          name: "Volet"
+          default: []
+          selector: { entity: { domain: cover } }
+        f4_emin:
+          name: "Élévation minimale du soleil"
+          default: 20
+          selector:
+            number: { min: 0, max: 45, unit_of_measurement: "°" }
+        f4_lf:
+          name: "Largeur de la baie"
+          default: 1.0
+          selector: { number: { min: 0.2, max: 5.0, step: 0.05, unit_of_measurement: "m" } }
+        f4_pf:
+          name: "Profondeur du tableau"
+          default: 0.25
+          selector: { number: { min: 0.05, max: 1.0, step: 0.01, unit_of_measurement: "m" } }
+        f4_of:
+          name: "Orientation de la fenêtre"
+          default: 180
+          selector: { number: { min: 0, max: 360, unit_of_measurement: "°" } }
+        f4_dmax:
+          name: "Hauteur de course"
+          default: 1.15
+          selector: { number: { min: 0.2, max: 4.0, step: 0.05, unit_of_measurement: "m" } }
+        f4_pmin:
+          name: "Position bas de vitre (%)"
+          default: 25
+          selector: { number: { min: 0, max: 100, unit_of_measurement: "%" } }
+        f4_exit:
+          name: "Position fin d'ensoleillement (%)"
+          default: 100
+          selector: { number: { min: 0, max: 100, unit_of_measurement: "%" } }
+        f4_morning:
+          name: "Gestion du matin (avant ensoleillement)"
+          default: false
+          selector: { boolean: {} }
+
+    # --- FENÊTRE 5 ---
+    section_f5:
+      name: "Fenêtre 5 (Optionnelle)"
+      icon: mdi:window-closed
+      collapsed: true
+      input:
+        f5_active:
+          name: "Interrupteur d'activation (Optionnel)"
+          default: []
+          selector: { entity: { domain: input_boolean } }
+        f5_cover:
+          name: "Volet"
+          default: []
+          selector: { entity: { domain: cover } }
+        f5_emin:
+          name: "Élévation minimale du soleil"
+          default: 20
+          selector:
+            number: { min: 0, max: 45, unit_of_measurement: "°" }
+        f5_lf:
+          name: "Largeur de la baie"
+          default: 1.0
+          selector: { number: { min: 0.2, max: 5.0, step: 0.05, unit_of_measurement: "m" } }
+        f5_pf:
+          name: "Profondeur du tableau"
+          default: 0.25
+          selector: { number: { min: 0.05, max: 1.0, step: 0.01, unit_of_measurement: "m" } }
+        f5_of:
+          name: "Orientation de la fenêtre"
+          default: 180
+          selector: { number: { min: 0, max: 360, unit_of_measurement: "°" } }
+        f5_dmax:
+          name: "Hauteur de course"
+          default: 1.15
+          selector: { number: { min: 0.2, max: 4.0, step: 0.05, unit_of_measurement: "m" } }
+        f5_pmin:
+          name: "Position bas de vitre (%)"
+          default: 25
+          selector: { number: { min: 0, max: 100, unit_of_measurement: "%" } }
+        f5_exit:
+          name: "Position fin d'ensoleillement (%)"
+          default: 100
+          selector: { number: { min: 0, max: 100, unit_of_measurement: "%" } }
+        f5_morning:
+          name: "Gestion du matin (avant ensoleillement)"
+          default: false
+          selector: { boolean: {} }
+
+trigger:
+  - platform: state
+    entity_id: sun.sun
+    attribute: azimuth
+  - platform: state
+    entity_id: sun.sun
+    attribute: elevation
+
+condition:
+  - condition: numeric_state
+    entity_id: sun.sun
+    attribute: elevation
+    above: 0
+
+action:
+  - variables:
+      pi: 3.14159265359
+      A: "{{ state_attr('sun.sun', 'azimuth') | float(0) }}"
+      E: "{{ state_attr('sun.sun', 'elevation') | float(0) }}"
+      N: !input nb_paliers
+      min_pos: !input min_position_active
+      presence_sensor: !input presence_sensor
+
+      is_present: >-
+        {% if presence_sensor != [] and presence_sensor != None %}
+          {% set state = states(presence_sensor) %}
+          {{ state in ['on', 'home', 'connected'] }}
+        {% else %}
+          true
+        {% endif %}
+
+      windows:
+        - active_entity: !input f1_active
+          entity: !input f1_cover
+          Emin: !input f1_emin
+          Lf: !input f1_lf
+          Pf: !input f1_pf
+          Of: !input f1_of
+          Dmax: !input f1_dmax
+          Pmin: !input f1_pmin
+          ExitPos: !input f1_exit
+          MorningMode: !input f1_morning
+        - active_entity: !input f2_active
+          entity: !input f2_cover
+          Emin: !input f2_emin
+          Lf: !input f2_lf
+          Pf: !input f2_pf
+          Of: !input f2_of
+          Dmax: !input f2_dmax
+          Pmin: !input f2_pmin
+          ExitPos: !input f2_exit
+          MorningMode: !input f2_morning
+        - active_entity: !input f3_active
+          entity: !input f3_cover
+          Emin: !input f3_emin
+          Lf: !input f3_lf
+          Pf: !input f3_pf
+          Of: !input f3_of
+          Dmax: !input f3_dmax
+          Pmin: !input f3_pmin
+          ExitPos: !input f3_exit
+          MorningMode: !input f3_morning
+        - active_entity: !input f4_active
+          entity: !input f4_cover
+          Emin: !input f4_emin
+          Lf: !input f4_lf
+          Pf: !input f4_pf
+          Of: !input f4_of
+          Dmax: !input f4_dmax
+          Pmin: !input f4_pmin
+          ExitPos: !input f4_exit
+          MorningMode: !input f4_morning
+        - active_entity: !input f5_active
+          entity: !input f5_cover
+          Emin: !input f5_emin
+          Lf: !input f5_lf
+          Pf: !input f5_pf
+          Of: !input f5_of
+          Dmax: !input f5_dmax
+          Pmin: !input f5_pmin
+          ExitPos: !input f5_exit
+          MorningMode: !input f5_morning
+
+  - repeat:
+      for_each: "{{ windows }}"
+      sequence:
+        - variables:
+            win: "{{ repeat.item }}"
+
+            dash_active: >-
+              {% if win.active_entity != [] and win.active_entity != None %}
+                {{ is_state(win.active_entity, 'on') }}
+              {% else %}
+                true
+              {% endif %}
+
+            current_pos: "{{ state_attr(win.entity, 'current_position') | default(-1, true) | int }}"
+            pos_active: "{{ current_pos >= min_pos }}"
+
+            is_active: "{{ is_present and dash_active and pos_active }}"
+
+            target_pc: >-
+              {% if is_active and win.entity != [] and win.entity != None %}
+                {% set Champ = 90 - (atan(win.Pf / win.Lf) * 180 / pi) %}
+                {% set Az_Min = win.Of - Champ %}
+                {% set Az_Max = win.Of + Champ %}
+
+                {% if A >= Az_Min and A <= Az_Max and E >= win.Emin %}
+                  {# --- 1. LE SOLEIL TAPE SUR LA FENÊTRE (Phase Active) --- #}
+                  {% set delta_A_rad = (A - win.Of) * pi / 180 %}
+                  {% set E_rad = E * pi / 180 %}
+                  {% set cos_delta = cos(delta_A_rad) %}
+                  {% if cos_delta == 0 or cos_delta | abs < 0.01 %}
+                    {{ win.ExitPos }}
+                  {% else %}
+                    {% set tan_Ef = tan(E_rad) / cos_delta %}
+                    {% set D = win.Pf * tan_Ef %}
+                    {% set D_clamped = [[D, 0] | max, win.Dmax] | min %}
+
+                    {% set Ratio_Ouverture = D_clamped / win.Dmax %}
+                    {% set Index_theorique = Ratio_Ouverture * N %}
+
+                    {% set Index_palier = Index_theorique | round(0, 'floor') | int %}
+                    {% set Index_clamped = [[Index_palier, 0] | max, N] | min %}
+
+                    {% set Pas = (100 - win.Pmin) / N %}
+                    {{ (win.Pmin + (Index_clamped * Pas)) | round | int }}
+                  {% endif %}
+
+                {% elif (A > Az_Max and not (Az_Min > Az_Max)) or (A < Az_Min and Az_Min > Az_Max) or E < win.Emin %}
+                  {# --- 2. LE SOLEIL EST PASSÉ OU SE COUCHE (Fin de cycle) --- #}
+                  {{ win.ExitPos }}
+
+                {% else %}
+                  {# --- 3. LE MATIN : LE SOLEIL N'EST PAS ENCORE LÀ --- #}
+                  {% if win.MorningMode %}
+                    {{ win.ExitPos }}
+                  {% else %}
+                    -1
+                  {% endif %}
+                {% endif %}
+              {% else %}
+                -1
+              {% endif %}
+
+        - if:
+            - condition: template
+              value_template: "{{ target_pc | int != -1 }}"
+            - condition: template
+              value_template: >-
+                {{ state_attr(win.entity, 'current_position') | int(0) != target_pc | int }}
+          then:
+            - service: cover.set_cover_position
+              target:
+                entity_id: "{{ win.entity }}"
+              data:
+                position: "{{ target_pc | int }}"
