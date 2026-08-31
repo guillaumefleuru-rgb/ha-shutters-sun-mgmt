@@ -14,11 +14,11 @@ use_blueprint:
     # --- Paramètres Généraux ---
     nb_paliers: 5              # 5 paliers intermédiaires entre Pmin et 100%
     min_position_active: 20   # Ignore les volets sous 20% (compatible Somfy My)
-    presence_sensor: person.guillaume_fleuru  # Désactive tout si absent
+    presence_sensor: person.user_home  # Désactive tout si absent
 
-    # --- Fenêtre 1: Chambre Marie (Sud) ---
-    f1_active: input_boolean.fenetre_marie
-    f1_cover: cover.chambre_marie_low_speed
+    # --- Fenêtre 1: Chambre 1 (Sud) ---
+    f1_active: input_boolean.window_1_active
+    f1_cover: cover.window_1_shutter
     f1_emin: 20               # Élévation minimale par défaut
     f1_lf: 1.0               # Largeur de la baie (1m)
     f1_pf: 0.25              # Profondeur du tableau (25cm)
@@ -28,9 +28,9 @@ use_blueprint:
     f1_exit: 100             # Position de fin d'ensoleillement
     f1_morning: false        # Ne pas gérer le matin
 
-    # --- Fenêtre 2: Chambre Louise (Sud) ---
-    f2_active: input_boolean.fenetre_louise
-    f2_cover: cover.chambre_louise_low_speed
+    # --- Fenêtre 2: Chambre 2 (Sud) ---
+    f2_active: input_boolean.window_2_active
+    f2_cover: cover.window_2_shutter
     f2_emin: 20
     f2_lf: 1.0
     f2_pf: 0.25
@@ -40,9 +40,9 @@ use_blueprint:
     f2_exit: 100
     f2_morning: false
 
-    # --- Fenêtre 3: Chambre Come (Est) ---
-    f3_active: input_boolean.fenetre_come
-    f3_cover: cover.chambre_come_low_speed
+    # --- Fenêtre 3: Chambre 3 (Est) ---
+    f3_active: input_boolean.window_3_active
+    f3_cover: cover.window_3_shutter
     f3_emin: 30               # Élévation minimale plus élevée pour l'Est
     f3_lf: 1.0
     f3_pf: 0.25
@@ -52,9 +52,9 @@ use_blueprint:
     f3_exit: 100
     f3_morning: false
 
-    # --- Fenêtre 4: Chambre Parents (Est) ---
-    f4_active: input_boolean.fenetre_parents
-    f4_cover: cover.chambre_parents_volet_parents_low_speed
+    # --- Fenêtre 4: Chambre 4 (Est) ---
+    f4_active: input_boolean.window_4_active
+    f4_cover: cover.window_4_shutter
     f4_emin: 30               # Élévation minimale plus élevée pour l'Est
     f4_lf: 1.0
     f4_pf: 0.25
@@ -65,8 +65,8 @@ use_blueprint:
     f4_morning: false
 
     # --- Fenêtre 5: Salle à Manger (Ouest) ---
-    f5_active: input_boolean.fenetre_salle_a_manger
-    f5_cover: cover.salle_a_manger_low_speed
+    f5_active: input_boolean.window_5_active
+    f5_cover: cover.window_5_shutter
     f5_emin: 20
     f5_lf: 1.0
     f5_pf: 0.25
@@ -84,7 +84,7 @@ use_blueprint:
 #   input:
 #     f1_cover: cover.salon_volet
 #     f1_of: 180          # Sud
-#     presence_sensor: person.guillaume_fleuru
+#     presence_sensor: person.user_home
 
 # -- Exemple 3: Avec capteur de présence alternative --
 # alias: Gestion Solaire Bureau
